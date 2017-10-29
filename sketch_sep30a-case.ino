@@ -22,6 +22,7 @@ const String pw_str = "Password :";
 //Globals
 char pw[9];
 String google_user;
+//byte buff2[_NAME_MAX_];
 char buff2[_NAME_MAX_];
 
 
@@ -248,19 +249,27 @@ void loop() {
                 i++;
                 switch(buff1[i])
                 {
-                case 'N':
-                  //Send the device a name and save to eeprom
-                  //x = Serial.read();
-                  for(int j=i;j<_NAME_MAX_;j++)
-                  {
-                    buff2[j]=buff1[i+1];
-                    Serial.print(buff1[i+1]);
-                  }
-                  
-                  Serial.println("Tested");
-
-                  //eepromPut(_NAME_, String(buff2), _NAME_MAX_, x);
-                  
+                  case 'N':
+                    //Send the device a name and save to eeprom
+                    
+                    Serial.print("Enter Name:");
+                    //do
+                    //{
+                    //}while(Serial.readBytesUntil('$', buff2, _NAME_MAX_));
+                    while (Serial.available() <= 0) {
+                        //Serial.println("0,0,0");   // send an initial string
+                        delay(300);
+                    }
+                    Serial.readBytesUntil('\n', buff2, _NAME_MAX_);
+                    for(int k=0;k<_NAME_MAX_;k++){
+                        Serial.print(buff2[k]);
+                    }
+                    Serial.println(' ');
+                    //eepromPut(_NAME_, String(buff2), _NAME_MAX_, x);
+                    for(int i; i<= _MAX_BUFFER_LEN_;i++)
+                    {
+                        buff1[i]= 0x00; // clear buffer
+                    }
                   break;
                 }
                 break;
