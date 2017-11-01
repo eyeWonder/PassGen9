@@ -1,6 +1,13 @@
+/*
+   // PassGen9 - A random password generator and data store
+  (c) 2017 Brian Durocher
+  Under: GPL v2
+
+
+*/
 #include <Regexp.h>
 #include <extEEPROM.h>
-#include <Embedis.h>
+//#include <Embedis.h>
 #include <Entropy.h>
 #include <Keyboard.h>
 #include <SoftwareSerial.h>
@@ -13,7 +20,7 @@
 
 const String lcd1 = "****************\n\r* PassGen9     *\n\r****************\n\r";
 const int _MAX_BUFFER_LEN_ = 80;
-int _NAME_ = 0;
+int _NAME_ADDR_ = 1;
 const int _NAME_MAX_ =15;
 const int _URL_MAX_ = 256;
 const String google = "https://www.google.ca";
@@ -118,24 +125,10 @@ char *getPassword(char *pw)
   pw[8] = 0;
   return(pw);
 }
-/* removed for infineon board test
-int eepromPut(int addr, String key, int maxLen, String message){
-  message = Serial.read();
-  if(message.length() <= maxLen){
-    //Eeprom write
-    Serial.println( "Writing:" + key + " " + message); 
-    EEPROM.put(_NAME_, message);
-    Serial.print("OK");
-  } else {
-    Serial.print("!!");
-    return 1;
-  }
-  return 0;
-}*/
 
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.setTimeout(115200);
   while (!Serial) {
     ; // wait for serial port to connect. Needed for Leonardo and Due
@@ -174,6 +167,12 @@ void loop() {
       buff1[i]= 0x00; // "";
     }
   }
+
+
+  while (Serial.available() <= 0) {
+      //Serial.println("0,0,0");   // send an initial string
+      delay(300);
+  } // 10-31-2017
   //cmd = Serial.readBytes( buff1, _MAX_BUFFER_LEN_);
   cmd = Serial.readBytesUntil('%', buff1, _MAX_BUFFER_LEN_);
   int address = 0;
@@ -194,8 +193,8 @@ void loop() {
                     Serial.println("Test: OK");
                     break;
                   case 'E':
-                    Serial.println("CMD received");
-                    /*
+                    Serial.println("CMD dump eprom received");
+                    
                     //Get EEPROM
                     
                     ///dump eeprom to shell
@@ -220,18 +219,22 @@ void loop() {
                       //  This will make your code portable to all AVR processors.
                      
                       if (address % 8 == 1){
-                        Serial.println();
+                        Serial.print("\n");
                       }
                       address = address + 1;
                       
                       if (address == EEPROM.length()) {
                         
-                        //address = 0;
+                        address = 0;
+                        
+                        for(int j=0;j<=_MAX_BUFFER_LEN_;j++){
+                          buff1[i]= 0x00; // clear buffer
+                        }
+                        break;
                       }
                       
-                    }
-                    Serial.println("\n\rEnd of EEPROM: OK")
-                    */;
+                    }//end while
+                    Serial.println("\n\rEnd of EEPROM: OK\n\n");
                     break;
                   case 'P':
                       //Output a password
@@ -260,16 +263,23 @@ void loop() {
                         //Serial.println("0,0,0");   // send an initial string
                         delay(300);
                     }
+                    String tmpS2 = "";
                     Serial.readBytesUntil('\n', buff2, _NAME_MAX_);
                     for(int k=0;k<_NAME_MAX_;k++){
                         Serial.print(buff2[k]);
+                        EEPROM.put(_NAME_ADDR_+k, buff2[k]);
+
+                        //tmpS2 += String(buff2[k]);
                     }
                     Serial.println(' ');
-                    //eepromPut(_NAME_, String(buff2), _NAME_MAX_, x);
                     for(int i; i<= _MAX_BUFFER_LEN_;i++)
                     {
-                        buff1[i]= 0x00; // clear buffer
+                      buff1[i]= 0x00; // clear buffer
                     }
+                    for(int j=0;j<=_NAME_MAX_;j++){
+                      buff2[i]= 0x00; // clear buffer
+                    }
+                    
                   break;
                 }
                 break;
